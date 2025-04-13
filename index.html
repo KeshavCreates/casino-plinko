@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Plinko Fever</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #121212 0%, #000 100%);
+        }
+        
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            z-index: 10;
+        }
+        
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0ff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .balance-amount {
+            color: #0ff;
+            margin-left: 10px;
+        }
+        
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0ff;
+            text-shadow: 0 0 15px #0ff;
+        }
+        
+        .controls {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            margin-top: 10px;
+            gap: 15px;
+        }
+        
+        .bet-controls {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+        
+        .bet-label {
+            margin-right: 10px;
+            font-size: 18px;
+            color: #0ff;
+        }
+        
+        .bet-button {
+            background: linear-gradient(135deg, #0ff 0%, #00a0a0 100%);
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .bet-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .bet-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0ff;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .drop-button {
+            background: linear-gradient(135deg, #ff00ff 0%, #aa00aa 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            text-transform: uppercase;
+        }
+        
+        .drop-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.8);
+        }
+        
+        .drop-button:disabled {
+            background: linear-gradient(135deg, #555 0%, #333 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: scale(1);
+        }
+        
+        .game-area {
+            position: relative;
+            width: 80vw;
+            max-width: 600px;
+            height: 70vh;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+            padding-top: 30px;
+            overflow: hidden;
+        }
+        
+        .plinko-board {
+            width: 100%;
+            height: 85%;
+            position: relative;
+        }
+        
+        .peg {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #0ff 0%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #0ff, 0 0 5px #fff;
+            transform: translate(-50%, -50%);
+        }
+        
+        .ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #ff00ff 20%, #aa00aa 100%);
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 0 15px #ff00ff;
+            transform: translate(-50%, -50%);
+        }
+        
+        .buckets {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            height: 15%;
+            position: relative;
+        }
+        
+        .bucket {
+            flex: 1;
+            height: 100%;
+            border-top: 2px solid rgba(0, 255, 255, 0.5);
+            border-left: 1px solid rgba(0, 255, 255, 0.3);
+            border-right: 1px solid rgba(0, 255, 255, 0.3);
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 5px #0ff;
+            position: relative;
+        }
+        
+        .bucket::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 255, 255, 0.1) 0%, rgba(0, 255, 255, 0) 100%);
+            opacity: 0.3;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .win-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            display: none;
+        }
+        
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #0ff;
+            border-radius: 15px;
+            padding: 30px;
+            z-index: 30;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            display: none;
+        }
+        
+        .message-title {
+            font-size: 24px;
+            color: #0ff;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #0ff;
+        }
+        
+        .message-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .message-button {
+            background: linear-gradient(135deg, #0ff 0%, #00a0a0 100%);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        .message-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+        }
+        
+        .free-coins {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            z-index: 15;
+        }
+        
+        .free-coins:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+        }
+        
+        .instagram-button {
+            background: linear-gradient(135deg, #ff00ff 0%, #aa00aa 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        
+        .instagram-button:disabled {
+            background: linear-gradient(135deg, #555 0%, #333 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .sound-toggle {
+            background: transparent;
+            border: none;
+            color: #0ff;
+            font-size: 24px;
+            cursor: pointer;
+            text-shadow: 0 0 10px #0ff;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+            50% { box-shadow: 0 0 15px #0ff, 0 0 20px #0ff; }
+            100% { box-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+        }
+        
+        @keyframes winPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="balance">Balance: <span class="balance-amount">0</span></div>
+            <div class="title">NEON PLINKO FEVER</div>
+            <div>
+                <button class="instagram-button">Get 50,000 Free Coins</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="bet-controls">
+                <span class="bet-label">BET:</span>
+                <button class="bet-button decrease-bet">-</button>
+                <span class="bet-amount">50</span>
+                <button class="bet-button increase-bet">+</button>
+            </div>
+            <button class="drop-button">DROP BALL</button>
+        </div>
+        
+        <div class="game-area">
+            <button class="free-coins">FREE COINS</button>
+            <div class="plinko-board"></div>
+            <div class="buckets"></div>
+            <div class="win-animation"></div>
+        </div>
+    </div>
+    
+    <div class="message-box" id="no-funds">
+        <div class="message-title">OUT OF COINS!</div>
+        <div class="message-text">You've run out of coins. Claim your free bonus to keep playing!</div>
+        <button class="message-button" id="claim-bonus">CLAIM 500 COINS</button>
+    </div>
+    
+    <div class="message-box" id="big-win">
+        <div class="message-title">BIG WIN!</div>
+        <div class="message-text">You hit the jackpot! Keep playing to win more!</div>
+        <button class="message-button" id="continue-playing">CONTINUE</button>
+    </div>
+    
+    <div class="message-box" id="mobile-device">
+        <div class="message-title">DESKTOP ONLY</div>
+        <div class="message-text">This casino is only available on PC. Please play on a desktop computer.</div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="drop-sound" preload="auto">
+        <source src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/pop_cork.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="win-sound" preload="auto">
+        <source src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/water_droplet.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="big-win-sound" preload="auto">
+        <source src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/glass.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Game constants
+        const ROWS = 12;
+        const COLS = 15;
+        const BUCKET_COUNT = 9;
+        const GRAVITY = 0.2;
+        const BOUNCE_FACTOR = 0.6;
+        const BALL_SPEED = 1.5;
+        const BALL_RADIUS = 8;
+        const PEG_RADIUS = 5;
+        const ANIMATION_SPEED = 16;
+
+        // Game variables
+        let balance = 0;
+        let betAmount = 50;
+        let activeBall = null;
+        let ballsInPlay = 0;
+        let lastDropTime = 0;
+        let freeClaimCount = 0;
+        let isSoundEnabled = true;
+
+        // Audio variables
+        const dropSound = document.getElementById('drop-sound');
+        const winSound = document.getElementById('win-sound');
+        const bigWinSound = document.getElementById('big-win-sound');
+
+        // Multipliers for buckets
+        const multipliers = [10, 4, 1.6, 0.8, 0.5, 1.1, 1.5, 4, 20];
+        
+        // DOM elements
+        const plinkoBoard = document.querySelector('.plinko-board');
+        const bucketsContainer = document.querySelector('.buckets');
+        const balanceDisplay = document.querySelector('.balance-amount');
+        const betDisplay = document.querySelector('.bet-amount');
+        const dropButton = document.querySelector('.drop-button');
+        const decreaseBetButton = document.querySelector('.decrease-bet');
+        const increaseBetButton = document.querySelector('.increase-bet');
+        const freeCoinsButton = document.querySelector('.free-coins');
+        const noFundsMessage = document.getElementById('no-funds');
+        const bigWinMessage = document.getElementById('big-win');
+        const claimBonusButton = document.getElementById('claim-bonus');
+        const continuePlayingButton = document.getElementById('continue-playing');
+        const winAnimation = document.querySelector('.win-animation');
+        const instagramButton = document.querySelector('.instagram-button');
+
+        // Initialize game
+        function initGame() {
+            if (window.innerWidth < 768) {
+                document.getElementById('mobile-device').style.display = 'block';
+                return;
+            }
+            createPegs();
+            createBuckets();
+            updateBalanceDisplay();
+            setupEventListeners();
+            checkInstagramClaim();
+            addSoundToggle();
+        }
+
+        // Create pegs
+        function createPegs() {
+            const boardWidth = plinkoBoard.clientWidth;
+            const boardHeight = plinkoBoard.clientHeight;
+            const pegSpacingX = boardWidth / (COLS + 1);
+            const pegSpacingY = boardHeight / (ROWS + 2);
+            
+            for (let row = 0; row < ROWS; row++) {
+                const pegsInThisRow = row % 2 === 0 ? COLS - 1 : COLS;
+                const offsetX = row % 2 === 0 ? pegSpacingX / 2 : 0;
+                
+                for (let col = 0; col < pegsInThisRow; col++) {
+                    const peg = document.createElement('div');
+                    peg.className = 'peg';
+                    const x = offsetX + (col + 1) * pegSpacingX + (Math.random() - 0.5) * 5;
+                    const y = (row + 1) * pegSpacingY + (Math.random() - 0.5) * 5;
+                    peg.style.left = `${x}px`;
+                    peg.style.top = `${y}px`;
+                    peg.dataset.x = x;
+                    peg.dataset.y = y;
+                    plinkoBoard.appendChild(peg);
+                }
+            }
+        }
+
+        // Create buckets
+        function createBuckets() {
+            for (let i = 0; i < BUCKET_COUNT; i++) {
+                const bucket = document.createElement('div');
+                bucket.className = 'bucket';
+                bucket.textContent = `${multipliers[i]}x`;
+                bucket.dataset.multiplier = multipliers[i];
+                const intensity = Math.min(100, multipliers[i] * 10);
+                bucket.style.background = `linear-gradient(to bottom, rgba(${intensity}, ${255-intensity}, 255, 0.1), rgba(0, 0, 0, 0.2))`;
+                bucketsContainer.appendChild(bucket);
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            dropButton.addEventListener('click', dropBall);
+            decreaseBetButton.addEventListener('click', decreaseBet);
+            increaseBetButton.addEventListener('click', increaseBet);
+            freeCoinsButton.addEventListener('click', claimFreeCoins);
+            claimBonusButton.addEventListener('click', claimBonus);
+            continuePlayingButton.addEventListener('click', closeBigWinMessage);
+            instagramButton.addEventListener('click', claimInstagramCoins);
+        }
+
+        // Play sound function
+        function playSound(audioElement) {
+            if (isSoundEnabled) {
+                audioElement.currentTime = 0;
+                audioElement.play().catch(error => {
+                    console.log("Audio playback prevented:", error);
+                });
+            }
+        }
+
+        // Add sound toggle
+        function addSoundToggle() {
+            const header = document.querySelector(".header");
+            const soundToggle = document.createElement("div");
+            soundToggle.innerHTML = `<button class="sound-toggle">🔊</button>`;
+            header.appendChild(soundToggle);
+            
+            const soundToggleButton = soundToggle.querySelector(".sound-toggle");
+            soundToggleButton.addEventListener("click", () => {
+                isSoundEnabled = !isSoundEnabled;
+                soundToggleButton.textContent = isSoundEnabled ? "🔊" : "🔇";
+            });
+        }
+
+        // Drop a ball
+        function dropBall() {
+            if (ballsInPlay >= 20 || Date.now() - lastDropTime < 200) {
+                return;
+            }
+            
+            if (balance < betAmount) {
+                showNoFundsMessage();
+                return;
+            }
+            
+            balance -= betAmount;
+            updateBalanceDisplay();
+            
+            playSound(dropSound);
+            
+            const ball = document.createElement('div');
+            ball.className = 'ball';
+            const boardWidth = plinkoBoard.clientWidth;
+            const startX = boardWidth / 2 + (Math.random() - 0.5) * (boardWidth / 5);
+            ball.style.left = `${startX}px`;
+            ball.style.top = `${BALL_RADIUS}px`;
+            ball.dataset.x = startX;
+            ball.dataset.y = BALL_RADIUS;
+            ball.dataset.vx = (Math.random() - 0.5) * BALL_SPEED;
+            ball.dataset.vy = 0;
+            plinkoBoard.appendChild(ball);
+            activeBall = ball;
+            ballsInPlay++;
+            lastDropTime = Date.now();
+            requestAnimationFrame(() => updateBall(ball));
+            createDropParticles(startX, BALL_RADIUS);
+        }
+
+        // Update ball position
+        function updateBall(ball) {
+            if (!ball.isConnected) return;
+            
+            let x = parseFloat(ball.dataset.x);
+            let y = parseFloat(ball.dataset.y);
+            let vx = parseFloat(ball.dataset.vx);
+            let vy = parseFloat(ball.dataset.vy);
+            vy += GRAVITY;
+            x += vx;
+            y += vy;
+            
+            const pegs = document.querySelectorAll('.peg');
+            for (const peg of pegs) {
+                const pegX = parseFloat(peg.dataset.x);
+                const pegY = parseFloat(peg.dataset.y);
+                const dx = x - pegX;
+                const dy = y - pegY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < BALL_RADIUS + PEG_RADIUS) {
+                    const angle = Math.atan2(dy, dx);
+                    const overlap = BALL_RADIUS + PEG_RADIUS - distance;
+                    x += overlap * Math.cos(angle);
+                    y += overlap * Math.sin(angle);
+                    const bounceAngle = Math.atan2(dy, dx);
+                    const speed = Math.sqrt(vx * vx + vy * vy);
+                    const dampedSpeed = speed * BOUNCE_FACTOR;
+                    const newAngle = bounceAngle + (Math.random() - 0.5) * 0.5;
+                    vx = Math.cos(newAngle) * dampedSpeed;
+                    vy = Math.sin(newAngle) * dampedSpeed;
+                    createCollisionParticles(x, y);
+                    peg.style.animation = 'glow 0.3s';
+                    setTimeout(() => {
+                        peg.style.animation = '';
+                    }, 300);
+                }
+            }
+            
+            const boardWidth = plinkoBoard.clientWidth;
+            const boardHeight = plinkoBoard.clientHeight;
+            
+            if (x < BALL_RADIUS) {
+                x = BALL_RADIUS;
+                vx = -vx * BOUNCE_FACTOR;
+            } else if (x > boardWidth - BALL_RADIUS) {
+                x = boardWidth - BALL_RADIUS;
+                vx = -vx * BOUNCE_FACTOR;
+            }
+            
+            if (y > boardHeight - BALL_RADIUS) {
+                finishBall(ball, x);
+                return;
+            }
+            
+            ball.dataset.x = x;
+            ball.dataset.y = y;
+            ball.dataset.vx = vx;
+            ball.dataset.vy = vy;
+            ball.style.left = `${x}px`;
+            ball.style.top = `${y}px`;
+            requestAnimationFrame(() => updateBall(ball));
+        }
+
+        // Handle ball reaching bottom
+        function finishBall(ball, finalX) {
+            ball.remove();
+            ballsInPlay--;
+            
+            const bucketWidth = bucketsContainer.clientWidth / BUCKET_COUNT;
+            const bucketIndex = Math.min(BUCKET_COUNT - 1, Math.max(0, Math.floor(finalX / bucketWidth)));
+            const bucket = document.querySelectorAll('.bucket')[bucketIndex];
+            
+            const multiplier = parseFloat(bucket.dataset.multiplier);
+            const winAmount = Math.floor(betAmount * multiplier);
+            
+            balance += winAmount;
+            updateBalanceDisplay();
+            
+            if (multiplier >= 5) {
+                playSound(bigWinSound);
+            } else {
+                playSound(winSound);
+            }
+            
+            bucket.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.8) inset';
+            setTimeout(() => {
+                bucket.style.boxShadow = '';
+            }, 500);
+            
+            createWinParticles(finalX, bucketsContainer.offsetTop);
+            
+            if (multiplier >= 5) {
+                showBigWinCelebration(winAmount);
+            }
+        }
+
+        // Create particles for drop effect
+        function createDropParticles(x, y) {
+            for (let i = 0; i < 5; i++) {
+                createParticle(x, y, 'rgba(255, 0, 255, 0.8)');
+            }
+        }
+
+        // Create particles for collision effect
+        function createCollisionParticles(x, y) {
+            for (let i = 0; i < 3; i++) {
+                createParticle(x, y, 'rgba(0, 255, 255, 0.8)');
+            }
+        }
+
+        // Create particles for win effect
+        function createWinParticles(x, y) {
+            for (let i = 0; i < 10; i++) {
+                createParticle(x, y, 'rgba(255, 215, 0, 0.8)');
+            }
+        }
+
+        // Generic particle creator
+        function createParticle(x, y, color) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.backgroundColor = color;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 3;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            plinkoBoard.appendChild(particle);
+            let opacity = 1;
+            const animate = () => {
+                if (opacity <= 0) {
+                    particle.remove();
+                    return;
+                }
+                x += vx;
+                y += vy;
+                opacity -= 0.05;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.opacity = opacity;
+                requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        }
+
+        // Show big win celebration
+        function showBigWinCelebration(amount) {
+            winAnimation.innerHTML = '';
+            winAnimation.style.display = 'block';
+            const pulse = document.createElement('div');
+            pulse.style.position = 'absolute';
+            pulse.style.top = '50%';
+            pulse.style.left = '50%';
+            pulse.style.width = '200px';
+            pulse.style.height = '200px';
+            pulse.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+            pulse.style.borderRadius = '50%';
+            pulse.style.transform = 'translate(-50%, -50%)';
+            pulse.style.animation = 'winPulse 1s infinite';
+            winAnimation.appendChild(pulse);
+            setTimeout(() => {
+                winAnimation.style.display = 'none';
+                bigWinMessage.querySelector('.message-text').textContent = `WOW! You won ${amount} coins! Keep playing to win more!`;
+                bigWinMessage.style.display = 'block';
+            }, 2000);
+        }
+
+        // Show no funds message
+        function showNoFundsMessage() {
+            noFundsMessage.style.display = 'block';
+        }
+
+        // Claim bonus
+        function claimBonus() {
+            freeClaimCount++;
+            const bonusAmount = Math.max(100, Math.floor(500 / freeClaimCount));
+            balance += bonusAmount;
+            updateBalanceDisplay();
+            noFundsMessage.style.display = 'none';
+            alert(`You received ${bonusAmount} free coins! Good luck!`);
+        }
+
+        // Close big win message
+        function closeBigWinMessage() {
+            bigWinMessage.style.display = 'none';
+        }
+
+        // Claim free coins
+        function claimFreeCoins() {
+            const lastClaim = parseInt(localStorage.getItem('lastFreeClaim') || '0');
+            const now = Date.now();
+            const cooldown = 3600000;
+            if (now - lastClaim >= cooldown) {
+                balance += 500;
+                updateBalanceDisplay();
+                localStorage.setItem('lastFreeClaim', now.toString());
+                alert('You claimed 500 free coins! Come back in an hour for more!');
+            } else {
+                const timeLeftMs = cooldown - (now - lastClaim);
+                const timeLeftMinutes = Math.ceil(timeLeftMs / 60000);
+                alert(`Free coins will be available in ${timeLeftMinutes} minute${timeLeftMinutes === 1 ? '' : 's'}!`);
+            }
+        }
+
+        // Claim Instagram coins
+        function claimInstagramCoins() {
+            balance += 50000;
+            updateBalanceDisplay();
+            window.open('https://linkedin.com/in/keshavg5', '_blank');
+            localStorage.setItem('instagramCoinsClaimed', 'true');
+            instagramButton.disabled = true;
+        }
+
+        // Check Instagram claim
+        function checkInstagramClaim() {
+            if (localStorage.getItem('instagramCoinsClaimed')) {
+                instagramButton.disabled = true;
+            }
+        }
+
+        // Increase bet
+        function increaseBet() {
+            const betIncrements = [10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 75000, 100000, 250000, 500000, 1000000];
+            for (let i = 0; i < betIncrements.length; i++) {
+                if (betAmount < betIncrements[i]) {
+                    betAmount = betIncrements[i];
+                    break;
+                }
+            }
+            betAmount = Math.min(betAmount, balance);
+            updateBetDisplay();
+        }
+
+        // Decrease bet
+        function decreaseBet() {
+            const betIncrements = [1000000, 500000, 250000, 100000, 75000, 50000, 25000, 10000, 5000, 2500, 1000, 500, 250, 100, 50, 10];
+            for (let i = 0; i < betIncrements.length; i++) {
+                if (betAmount > betIncrements[i]) {
+                    betAmount = betIncrements[i];
+                    break;
+                }
+            }
+            betAmount = Math.max(10, betAmount);
+            updateBetDisplay();
+        }
+
+        // Update balance display
+        function updateBalanceDisplay() {
+            balanceDisplay.textContent = balance;
+            localStorage.setItem('plinkoBalance', balance.toString());
+            dropButton.disabled = balance < betAmount;
+        }
+
+        // Update bet display
+        function updateBetDisplay() {
+            betDisplay.textContent = betAmount;
+            dropButton.disabled = balance < betAmount;
+        }
+
+        // Load saved balance
+        function loadSavedBalance() {
+            const savedBalance = localStorage.getItem('plinkoBalance');
+            if (savedBalance) {
+                balance = parseInt(savedBalance);
+            }
+        }
+
+        // Initialize game on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedBalance();
+            initGame();
+        });
+    </script>
+</body>
+</html>
