@@ -15,7 +15,7 @@ A vibrant, neon-themed Plinko gambling game built with HTML, CSS, and JavaScript
 🚀 Installation
 
 ~ Clone the repository:
-git clone https://github.com/yourusername/neon-plinko-fever.git
+git clone https://github.com/KeshavCreates/casino-plinko.git
 
 ~ Navigate to the project directory:
 cd neon-plinko-fever
